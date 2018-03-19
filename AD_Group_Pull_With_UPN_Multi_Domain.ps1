@@ -6,12 +6,14 @@ Declaring the following variables as empty arrays (necessary to support the powe
 https://gallery.technet.microsoft.com/scriptcenter/An-Array-of-PowerShell-069c30aa
 #>
 $CollProps = @()
-$DomainList = @("CSCInfo.com","taxtech.com")
+
+#Declare List of Domains
+$DomainList = @("Domain1","Domain2")
 
 #Defining ingestion of initial data
 $List = Get-Content C:\Temp\Test.csv
 
-#Beginning Group List Iteration
+#Beginning Domain and Group List Iteration
 ForEach ($Domain in $DomainList)
 {
 ForEach ($Item in $List) {
