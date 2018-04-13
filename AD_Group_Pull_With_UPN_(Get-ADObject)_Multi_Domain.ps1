@@ -5,25 +5,14 @@ Import-Module ActiveDirectory
 Declaring the following variables as empty arrays (necessary to support the powershell array invocation 'op_Addition').  More details here:
 https://gallery.technet.microsoft.com/scriptcenter/An-Array-of-PowerShell-069c30aa
 #>
-$DomainList = @("MGT.Group.zone","office.ad.netbenefit.com","dev.group.zone","prd.group.zone")
+$DomainList = @("Domain1","Domain2","Domain3","Domain4")
 
 #Defining ingestion of initial data
-$List = @("PRD Domain Admin","Domain Admins")
+$List = @("Group1","Group2")
 
 #Beginning Group List Iteration
 ForEach ($Domain in $DomainList)
 {
-
-Switch ($Domain)
-{
-"CSCInfo.com" {$DomainCN = "DC=CSCInfo,DC=com"}
-"Taxtech.com" {$DomainCN = "DC=Taxtech,DC=com"}
-"prd.group.zone" {$DomainCN = "DC=PRD,DC=Group,DC=Zone"}
-"dev.group.zone" {$DomainCN = "DC=DEV,DC=Group,DC=Zone"}
-"office.ad.netbenefit.com" {$DomainCN = "DC=Office,DC=AD,DC=Netbenefit,DC=com"}
-}
-
-$SearchBase = "CN=ForeignSecurityPrincipals,$DomainCN"
 
 ForEach ($Item in $List) {
 
@@ -62,14 +51,15 @@ ForEach ($Item in $List) {
         'SAM' = $NamePull.SamAccountName
         'UPN' = $NamePull.userprincipalname;
         'Translated Name' = $TranslateRN;
+        'SID' = $NamePull.objectSID;
+        'When Created' = $NamePull.whenCreated;
         }
         
         #...and we accomplish that in the following line, effectively ejecting the data into a brand new, empty array waiting for the data.    
         
         $TotalList += $CollProps
         
-
-        }
+                }
         }
 
         #Don't forget quotes when defining a path as a variable.
