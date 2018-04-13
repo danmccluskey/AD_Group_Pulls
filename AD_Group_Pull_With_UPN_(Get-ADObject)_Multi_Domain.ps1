@@ -1,14 +1,15 @@
 ﻿#Importing the AD Module
 Import-Module ActiveDirectory
+$ErrorActionPReference = SilentlyContinue
 
 <#
 Declaring the following variables as empty arrays (necessary to support the powershell array invocation 'op_Addition').  More details here:
 https://gallery.technet.microsoft.com/scriptcenter/An-Array-of-PowerShell-069c30aa
 #>
-$DomainList = @("Domain1","Domain2","Domain3","Domain4")
+$DomainList = @("Domain1","Domain2")
 
 #Defining ingestion of initial data
-$List = @("Group1","Group2")
+$List = (Get-Content C:\temp\GroupList.txt)
 
 #Beginning Group List Iteration
 ForEach ($Domain in $DomainList)
@@ -19,7 +20,7 @@ ForEach ($Item in $List) {
     #Definining Variable for pulling Members of each Item in $List
     $ADGroupPull = $Null
     $TotalList = @()
-    $ADGroupPull = (Get-ADGroup $Item -Server $Domain -Properties Member -ErrorAction Continue).Member
+    $ADGroupPull = (Get-ADGroup $Item -Server $Domain -Properties Member -ErrorAction SilentlyContinue).Member
 
     #Defining second Foreach that will iterate through individual group member objects.  Note that this is not the same as a user object.
     if ($ADGroupPull) {
@@ -27,11 +28,18 @@ ForEach ($Item in $List) {
         $TranslateRN = $Null
         $CollProps = @()
         $Translation = [regex]::matches($_,'(?<=\=).+?(?=\,)')[0].Value
-        $ADOFilter = "Name -eq `"$Translation`""
+        #$ADOFilter = "Name -eq `"$Translation`""
+        $ADOFilter = "DistinguishedName -eq `"$_`""
 
         if ($_ -like '*foreignsecurity*')
         {
+        try {
         $TranslateRN = ([System.Security.Principal.SecurityIdentifier] $Translation).Translate([System.Security.Principal.NTAccount])
+        }
+        catch
+        {
+        $TranslateRN = "Orphaned"
+        }
         }
         
         $NamePull = (Get-ADObject -filter $ADOFilter -Server $Domain -Properties Name, ObjectClass, objectSID, SAMAccountName, UserPrincipalName, whenCreated)
@@ -59,7 +67,8 @@ ForEach ($Item in $List) {
         
         $TotalList += $CollProps
         
-                }
+
+        }
         }
 
         #Don't forget quotes when defining a path as a variable.
